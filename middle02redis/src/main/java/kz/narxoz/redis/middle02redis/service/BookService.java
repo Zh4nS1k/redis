@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class BookService {
 
     private static final String BOOK_CACHE_KEY_PREFIX = "book:";
+    private static final String ALL_BOOKS_CACHE_KEY = "books:all";
     private static final String POPULAR_BOOKS_CACHE_KEY = "books:popular";
     private static final String POPULARITY_SORTED_SET_KEY = "books:popularity";
     private static final long BOOK_CACHE_TTL_MINUTES = 10;
@@ -35,12 +36,20 @@ public class BookService {
     public Book createBook(Book book) {
         Book saved = bookRepository.save(book);
         cacheService.cacheObject(buildBookCacheKey(saved.getId()), saved, BOOK_CACHE_TTL_MINUTES, TimeUnit.MINUTES);
-        cacheService.deleteCachedObject(POPULAR_BOOKS_CACHE_KEY);
+        invalidateBookCollections();
         return saved;
     }
 
+    @SuppressWarnings("unchecked")
     public List<Book> listBooks() {
-        return bookRepository.findAll();
+        List<Book> cached = cacheService.getCacheObject(ALL_BOOKS_CACHE_KEY, List.class);
+        if (cached != null) {
+            return cached;
+        }
+
+        List<Book> books = bookRepository.findAll();
+        cacheService.cacheObject(ALL_BOOKS_CACHE_KEY, books, BOOK_CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+        return books;
     }
 
     public Book getBook(Long id) {
@@ -73,7 +82,7 @@ public class BookService {
 
         Book updated = bookRepository.save(target);
         cacheService.cacheObject(buildBookCacheKey(id), updated, BOOK_CACHE_TTL_MINUTES, TimeUnit.MINUTES);
-        cacheService.deleteCachedObject(POPULAR_BOOKS_CACHE_KEY);
+        invalidateBookCollections();
         return updated;
     }
 
@@ -86,7 +95,7 @@ public class BookService {
 
         bookRepository.deleteById(id);
         cacheService.deleteCachedObject(buildBookCacheKey(id));
-        cacheService.deleteCachedObject(POPULAR_BOOKS_CACHE_KEY);
+        invalidateBookCollections();
         redisUtility.removePopularity(POPULARITY_SORTED_SET_KEY, id);
     }
 
@@ -116,5 +125,10 @@ public class BookService {
 
     private String buildBookCacheKey(Long id) {
         return BOOK_CACHE_KEY_PREFIX + id;
+    }
+
+    private void invalidateBookCollections() {
+        cacheService.deleteCachedObject(ALL_BOOKS_CACHE_KEY);
+        cacheService.deleteCachedObject(POPULAR_BOOKS_CACHE_KEY);
     }
 }
