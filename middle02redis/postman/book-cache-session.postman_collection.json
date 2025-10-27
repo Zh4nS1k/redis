@@ -1,0 +1,308 @@
+{
+  "info": {
+    "_postman_id": "7cbfb56b-4d1e-4f9e-9f48-54de6be38d3a",
+    "name": "Book Cache & Session Service",
+    "description": "Collection covering the book CRUD API, Redis-backed sessions, and cache monitoring endpoints exposed by the middle02redis project.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Books",
+      "item": [
+        {
+          "name": "List Books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books"
+              ]
+            },
+            "description": "Fetches all books from PostgreSQL (no pagination yet)."
+          }
+        },
+        {
+          "name": "Create Book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Designing Data-Intensive Applications\",\n  \"author\": \"Martin Kleppmann\",\n  \"price\": 62.50,\n  \"genre\": \"Distributed Systems\",\n  \"description\": \"A practical guide to building scalable, reliable systems.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books"
+              ]
+            },
+            "description": "Creates a new book, writes it to Postgres, caches it for 10 minutes, and clears the popular-books cache."
+          }
+        },
+        {
+          "name": "Get Book by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/books/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books",
+                "{{bookId}}"
+              ]
+            },
+            "description": "Retrieves a single book. Returns cached data if available, otherwise fetches from the database and seeds the cache."
+          }
+        },
+        {
+          "name": "Update Book",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Designing Data-Intensive Applications (2nd Ed.)\",\n  \"author\": \"Martin Kleppmann\",\n  \"price\": 68.00,\n  \"genre\": \"Distributed Systems\",\n  \"description\": \"Updated insights on streaming, consistency, and data pipelines.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/books/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books",
+                "{{bookId}}"
+              ]
+            },
+            "description": "Updates the book in Postgres and immediately refreshes the Redis cache entry."
+          }
+        },
+        {
+          "name": "Delete Book",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/books/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books",
+                "{{bookId}}"
+              ]
+            },
+            "description": "Deletes a book, its cache entry, popular-list cache, and popularity stats. Returns 204 on success."
+          }
+        },
+        {
+          "name": "Get Popular Books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/books/popular?limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "books",
+                "popular"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Returns the most frequently requested books. Uses a Redis sorted set and caches the list for 5 minutes."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "item": [
+        {
+          "name": "Login / Create Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sessions/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sessions",
+                "login"
+              ]
+            },
+            "description": "Creates a Redis-backed HTTP session. Allow Postman to store cookies so subsequent calls reuse the session."
+          }
+        },
+        {
+          "name": "Append Session Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payload\": \"Reading list updated\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sessions/data",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sessions",
+                "data"
+              ]
+            },
+            "description": "Adds an arbitrary string to the session's `session:dataList` attribute."
+          }
+        },
+        {
+          "name": "Get Current Session Snapshot",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sessions/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sessions",
+                "me"
+              ]
+            },
+            "description": "Displays the session id, stored username, accumulated data, and TTL (minutes) as seen in Redis."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sessions/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sessions",
+                "logout"
+              ]
+            },
+            "description": "Invalidates the current session and clears cached attributes."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cache Monitor",
+      "item": [
+        {
+          "name": "Inspect TTLs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cache/monitor?pattern=book:*&unit=SECONDS",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cache",
+                "monitor"
+              ],
+              "query": [
+                {
+                  "key": "pattern",
+                  "value": "book:*",
+                  "description": "Redis glob pattern."
+                },
+                {
+                  "key": "unit",
+                  "value": "SECONDS",
+                  "description": "Any java.util.concurrent.TimeUnit value (e.g., SECONDS, MINUTES)."
+                }
+              ]
+            },
+            "description": "Returns a map of Redis keys to their remaining TTL for the supplied pattern."
+          }
+        },
+        {
+          "name": "Cleanup Expired Keys",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cache/cleanup?pattern=book:*",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cache",
+                "cleanup"
+              ],
+              "query": [
+                {
+                  "key": "pattern",
+                  "value": "book:*"
+                }
+              ]
+            },
+            "description": "Forces deletion of expired keys matching the pattern (same logic the scheduled job uses)."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "bookId",
+      "value": "1"
+    }
+  ]
+}
