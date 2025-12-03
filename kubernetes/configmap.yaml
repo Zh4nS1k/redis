@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bookstore-config
+  namespace: bookstore
+data:
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
+  SPRING_JPA_HIBERNATE_DDL_AUTO: update
+  SPRING_DATA_REDIS_HOST: redis
+  SPRING_DATA_REDIS_PORT: "6379"
+  SPRING_SESSION_STORE_TYPE: redis
+  SPRING_SESSION_REDIS_NAMESPACE: bookstore
+  CACHE_MONITOR_ENABLED: "true"
+  SERVER_PORT: "8000"

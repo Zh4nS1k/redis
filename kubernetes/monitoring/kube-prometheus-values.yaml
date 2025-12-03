@@ -1,0 +1,15 @@
+grafana:
+  adminPassword: admin
+  service:
+    type: NodePort
+    nodePort: 30090
+
+prometheus:
+  service:
+    type: NodePort
+    nodePort: 30091
+
+alertmanager:
+  enabled: true
+  service:
+    type: ClusterIP

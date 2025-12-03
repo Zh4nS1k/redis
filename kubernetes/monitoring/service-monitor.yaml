@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: bookstore-api
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  namespaceSelector:
+    matchNames:
+      - bookstore
+  selector:
+    matchLabels:
+      app: bookstore-api
+      tier: api
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s

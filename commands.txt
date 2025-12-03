@@ -1,0 +1,50 @@
+для того чтобы создать образ проекта на джава // java -jar bookService.jar
+
+чтобы создать докер образ // docker build -t book-service-iso .
+
+чтобы протестить работоспособность образа // docker run --name book-service-container -p 8888:8000 book-service-iso
+
+запустить образ как контейнер // docker run -d --name task-service-container -p 8888:8000 task-service-iso
+
+назначть образу тег для загрузки в ДокерХаб // docker tag book-service-iso aluahub/book-service:latest
+
+Сделать пуш в ДокерХаб // docker push aluahub/book-service:latest
+
+Ты заранее подготовила неймспейс bookstore шаг который не нужно делать сейчас но ты сделала заранее
+шаг 0.1 // kubectl apply -f kubernetes/namespace.yaml
+
+такой же шаг который запускает все что относиться к неймспейс bookstore (очень удобно)
+шаг 0.2 // kubectl apply -f kubernetes -n bookstore
+
+шаг 1.0 // minikube start
+
+шаг 1.1 // kubectl get pods,svc,pvc,hpa -n bookstore
+
+шаг 1.2 // kubectl port-forward svc/bookstore-api 8080:80 -n bookstore
+
+посмотереть логи в случай ошибка // kubectl logs <имя-pod-а> -n bookstore
+
+шаг 1.2 (альтернатива 0) // minikube service bookstore-api -n bookstore --url
+
+шаг 1.2 (альтернатива 1) minikube service bookstore-api -n bookstore
+
+для получение имени пода Графана
+шаг 2.0 // kubectl get pods -n monitoring -l "app.kubernetes.io/name=grafana"
+
+Пример именеи графана // monitoring-grafana-7f9bdc9c8b-xxxxx
+
+ОПАСНО не вводи если не хочешь удалить все поды и сервисы // kubectl delete namespace bookstore
+
+чтобы устоновть инструмент мониторинга // helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+helm install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace -f kubernetes/monitoring/kube-prometheus-values.yaml
+
+шаг 2.1 // kubectl port-forward -n monitoring monitoring-grafana-7f9bdc9c8b-xxxxx 3000:3000
+monitoring-grafana-654f868c6b-r8vtd
+
+шаг // 2.2
+admin
+admin
+шаг // 2.3
+Dashboard -> Kubernetes/Compute Resources/Workload -> bookstore-api
